@@ -1,0 +1,7 @@
+.env
+.env.*
+**/.env
+*.env
+.env.prod
+.env.local
+dspace-logs/

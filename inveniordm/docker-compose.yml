@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  invenio-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: invenio_rdm_container
+    ports:
+      - "5000:5000" # Puerto de visualización en el navegador
+    volumes:
+      - .:/app     # Mapea tu directorio actual al contenedor para persistir el código
+      # Conexión vital para que invenio-cli levante la DB y servicios en el Docker del host
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - PYTHONUNBUFFERED=1
+    # Asegura que el contenedor se reinicie si el sistema se cae
+    restart: always

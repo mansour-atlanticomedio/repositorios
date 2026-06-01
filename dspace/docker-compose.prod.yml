@@ -1,0 +1,109 @@
+services:
+  dspacedb:
+    image: dspace/dspace-postgres-pgcrypto:dspace-8.0
+    container_name: dspacedb
+    environment:
+      - PGDATA=/var/lib/postgresql/data/pgdata
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d:ro
+    networks:
+      - dspacenet
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  dspace-solr:
+    image: dspace/dspace-solr:dspace-8.0
+    container_name: dspace-solr
+    volumes:
+      - solr_data:/var/solr/data
+    networks:
+      - dspacenet
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8983/solr/admin/cores?action=STATUS"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  dspace-backend:
+    image: dspace/dspace:dspace-8.0
+    container_name: dspace
+    env_file:
+      - .env
+    depends_on:
+      dspacedb:
+        condition: service_healthy
+      dspace-solr:
+        condition: service_healthy
+    ports:
+    environment:
+      - JAVA_OPTS=-Xmx2048m -Xms1024m 
+      - db__P__url=jdbc:postgresql://dspacedb:5432/${DB_NAME} 
+      - db__P__username=${DB_USER} 
+      - db__P__password=${DB_PASSWORD} 
+      - solr__P__server=http://dspace-solr:8983/solr 
+      - dspace__P__server__P__url=https://atlanticomedio.es/dspace/server
+      - dspace__P__dir=/dspace
+    volumes:
+      - assetstore:/dspace/assetstore
+    networks:
+      - dspacenet
+    restart: always
+    entrypoint: 
+      - /bin/bash
+      - -c
+      - |
+        while (! </dev/tcp/dspacedb/5432) > /dev/null 2>&1; do sleep 1; done;
+        sleep 3;
+        /dspace/bin/dspace database migrate
+        mkdir -p /dspace/log && ln -sf /dev/stdout /dspace/log/dspace.log
+        exec java $$JAVA_OPTS -jar /dspace/webapps/server-boot.jar --dspace.dir=/dspace
+
+  dspace-angular:
+    container_name: dspace-angular
+    build:
+      context: ./dspace-angular
+      dockerfile: Dockerfile.dist
+      
+    env_file:
+      - .env.prod
+    depends_on:
+      - dspace-backend
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=production
+
+      - DSPACE_UI_HOST=0.0.0.0
+      - DSPACE_UI_PORT=4000
+      - DSPACE_UI_NAMESPACE=/dspace
+      - DSPACE_UI_SSL=false
+      
+      - DSPACE_UI_REST_HOST=192.168.0.236
+      - DSPACE_UI_REST_PORT=443
+      - DSPACE_UI_REST_NAMESPACE=/dspace/server
+      - DSPACE_UI_REST_SSL=true
+
+      - DSPACE_UI_REST_HOST=dspace-backend
+      - DSPACE_UI_REST_PORT=8080
+      - DSPACE_UI_REST_NAMESPACE=/server
+      - DSPACE_UI_REST_SSL=false
+    networks:
+      - dspacenet
+    restart: always
+
+networks:
+  dspacenet:
+
+volumes:
+  pgdata:
+  solr_data:
+  assetstore:

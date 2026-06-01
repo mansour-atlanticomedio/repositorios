@@ -1,0 +1,15 @@
+ui:
+  ssl: false
+  host: localhost
+  port: 4000
+  nameSpace: /dspace
+
+rest:
+  ssl: false
+  host: localhost
+  port: 8080
+  nameSpace: /dspace/server
+
+cache:
+  msToLive: 900000
+  control: max-age=60
