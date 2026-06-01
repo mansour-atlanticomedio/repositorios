@@ -15,7 +15,7 @@ COPY package.json yarn.lock ./
 RUN yarn install --network-timeout 300000
 
 ADD . /app/
-RUN yarn run build:prod --base-href /dspace/
+RUN yarn build:prod
 
 FROM node:18-alpine
 RUN npm install --global pm2
