@@ -1,12 +1,12 @@
 ui:
   ssl: false
-  host: 0.0.0.0
+  host: localhost
   port: 4000
   nameSpace: /dspace
 
 rest:
   ssl: true
-  host: 192.168.0.236
+  host: localhost
   port: 443
   nameSpace: /dspace/server
 

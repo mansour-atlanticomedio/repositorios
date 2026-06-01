@@ -74,20 +74,20 @@ services:
       context: ./dspace-angular
       dockerfile: Dockerfile.dist
       
-    env_file:
-      - .env.prod
+    # env_file:
+    #   - .env.prod
     depends_on:
       - dspace-backend
     ports:
       - "4000:4000"
     environment:
       - NODE_ENV=production
-
+      - DSPACE_UI_NAMESPACE=/dspace
+      
       - DSPACE_UI_HOST=0.0.0.0
       - DSPACE_UI_PORT=4000
-      - DSPACE_UI_NAMESPACE=/dspace
       - DSPACE_UI_SSL=false
-      
+
       - DSPACE_REST_HOST=192.168.0.236
       - DSPACE_REST_PORT=443
       - DSPACE_REST_NAMESPACE=/dspace/server
