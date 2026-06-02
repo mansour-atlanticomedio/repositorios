@@ -102,12 +102,13 @@ services:
       - DSPACE_NAMESPACE=/dspace
       - DSPACE_SSL=false
 
-      - DSPACE_REST_HOST=dspace-backend
-      - DSPACE_REST_PORT=8080
+      - DSPACE_REST_HOST=192.168.0.236
+      - DSPACE_REST_PORT=443
       - DSPACE_REST_NAMESPACE=/dspace/server
-      - DSPACE_REST_SSL=false
+      - DSPACE_REST_SSL=true
+      - NODE_TLS_REJECT_UNAUTHORIZED=0
 
-      # - DSPACE_CACHE_SERVERSIDE_BOTCACHE_TIMETOLIVE=300000
+      - DSPACE_CACHE_SERVERSIDE_BOTCACHE_TIMETOLIVE=300000
     networks:
       - dspacenet
 
