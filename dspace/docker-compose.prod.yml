@@ -68,6 +68,11 @@ services:
       - dspace__P__server__P__url=https://192.168.0.236/dspace/server
       - dspace__P__ui__P__url=https://192.168.0.236/dspace
       - dspace__P__dir=/dspace
+      - cors__P__allowed__P__origins=https://192.168.0.236
+      - cors__P__allowed__P__methods=GET,POST,PUT,PATCH,DELETE,OPTIONS,HEAD
+      - cors__P__allowed__P__headers=Authorization,Content-Type,Accept,Origin,X-Requested-With,X-CSRF-TOKEN,DSpace-XSRF-TOKEN
+      - cors__P__exposed__P__headers=DSPACE-XSRF-TOKEN,X-XSRF-TOKEN
+      - cors__P__allow__P__credentials=true
     volumes:
       - assetstore:/dspace/assetstore
       # - ./dspace-logs:/dspace/log
@@ -94,7 +99,7 @@ services:
     image: dspace/dspace-angular:dspace-8.0
     container_name: dspace-angular
     env_file:
-      - .env
+      - .env.prod
     depends_on:
       - dspace-backend
     ports:
