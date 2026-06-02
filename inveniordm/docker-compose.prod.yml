@@ -1,0 +1,260 @@
+# =============================================================================
+# InvenioRDM - Entorno PRODUCCION
+# =============================================================================
+# Stack completo: frontend nginx, dos workers uwsgi (UI + API), worker y
+# scheduler de Celery, y todos los servicios de infraestructura.
+#
+# Uso:
+#   cp .env.example .env
+#   $EDITOR .env  # cambiar TODOS los CHANGE_ME y passwords
+#   docker compose -f docker-compose.prod.yml --env-file .env build
+#   docker compose -f docker-compose.prod.yml --env-file .env up -d
+#
+# Tras el primer arranque (una sola vez):
+#   docker compose -f docker-compose.prod.yml exec web-api invenio db create
+#   docker compose -f docker-compose.prod.yml exec web-api invenio db init
+#   docker compose -f docker-compose.prod.yml exec web-api invenio index init
+#   docker compose -f docker-compose.prod.yml exec web-api invenio files location create default-location /opt/invenio/var/instance/data default
+#   docker compose -f docker-compose.prod.yml exec web-api invenio oai harvester init
+#   docker compose -f docker-compose.prod.yml exec web-api invenio roles create admin
+# =============================================================================
+
+services:
+  frontend:
+    build:
+      context: ./hello-world/docker/nginx
+    image: inveniordm-hello-world-frontend:${IMAGE_TAG:-prod}
+    container_name: invenio_frontend
+    restart: always
+    depends_on:
+      web-ui:
+        condition: service_started
+      web-api:
+        condition: service_started
+    volumes:
+      - static_data:/opt/invenio/var/instance/static
+    ports:
+      - "${FRONTEND_HTTP_BIND:-0.0.0.0}:80:80"
+      - "${FRONTEND_HTTPS_BIND:-0.0.0.0}:443:443"
+
+  web-ui:
+    build:
+      context: ./hello-world
+      dockerfile: Dockerfile
+      args:
+        ENVIRONMENT: PROD
+    image: inveniordm-hello-world:${IMAGE_TAG:-prod}
+    container_name: invenio_web_ui
+    restart: always
+    command: ["uwsgi /opt/invenio/var/instance/uwsgi_ui.ini"]
+    environment:
+      INVENIO_SECRET_KEY: ${INVENIO_SECRET_KEY}
+      INVENIO_SQLALCHEMY_DATABASE_URI: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      INVENIO_CACHE_TYPE: redis
+      INVENIO_CACHE_REDIS_URL: redis://cache:6379/0
+      INVENIO_ACCOUNTS_SESSION_REDIS_URL: redis://cache:6379/1
+      INVENIO_CELERY_BROKER_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@mq:5672/
+      INVENIO_CELERY_RESULT_BACKEND: redis://cache:6379/2
+      INVENIO_BROKER_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@mq:5672/
+      INVENIO_RATELIMIT_STORAGE_URL: redis://cache:6379/3
+      INVENIO_COMMUNITIES_IDENTITIES_CACHE_REDIS_URL: redis://cache:6379/4
+      INVENIO_SEARCH_HOSTS: '["https://search:9200"]'
+      INVENIO_WSGI_PROXIES: "2"
+      OAUTHLIB_INSECURE_TRANSPORT: "0"
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_started
+      mq:
+        condition: service_started
+      search:
+        condition: service_healthy
+    volumes:
+      - static_data:/opt/invenio/var/instance/static
+      - uploaded_data:/opt/invenio/var/instance/data
+      - archived_data:/opt/invenio/var/instance/archive
+    expose:
+      - "5000"
+
+  web-api:
+    build:
+      context: ./hello-world
+      dockerfile: Dockerfile
+      args:
+        ENVIRONMENT: PROD
+    image: inveniordm-hello-world:${IMAGE_TAG:-prod}
+    container_name: invenio_web_api
+    restart: always
+    command: ["uwsgi /opt/invenio/var/instance/uwsgi_rest.ini"]
+    environment:
+      INVENIO_SECRET_KEY: ${INVENIO_SECRET_KEY}
+      INVENIO_SQLALCHEMY_DATABASE_URI: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      INVENIO_CACHE_TYPE: redis
+      INVENIO_CACHE_REDIS_URL: redis://cache:6379/0
+      INVENIO_ACCOUNTS_SESSION_REDIS_URL: redis://cache:6379/1
+      INVENIO_CELERY_BROKER_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@mq:5672/
+      INVENIO_CELERY_RESULT_BACKEND: redis://cache:6379/2
+      INVENIO_BROKER_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@mq:5672/
+      INVENIO_RATELIMIT_STORAGE_URL: redis://cache:6379/3
+      INVENIO_COMMUNITIES_IDENTITIES_CACHE_REDIS_URL: redis://cache:6379/4
+      INVENIO_SEARCH_HOSTS: '["https://search:9200"]'
+      INVENIO_WSGI_PROXIES: "2"
+      OAUTHLIB_INSECURE_TRANSPORT: "0"
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_started
+      mq:
+        condition: service_started
+      search:
+        condition: service_healthy
+    volumes:
+      - uploaded_data:/opt/invenio/var/instance/data
+      - archived_data:/opt/invenio/var/instance/archive
+    expose:
+      - "5000"
+
+  worker:
+    image: inveniordm-hello-world:${IMAGE_TAG:-prod}
+    container_name: invenio_worker
+    restart: always
+    command: ["celery -A invenio_app.celery worker --loglevel=INFO"]
+    environment:
+      INVENIO_SECRET_KEY: ${INVENIO_SECRET_KEY}
+      INVENIO_SQLALCHEMY_DATABASE_URI: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      INVENIO_CACHE_TYPE: redis
+      INVENIO_CACHE_REDIS_URL: redis://cache:6379/0
+      INVENIO_ACCOUNTS_SESSION_REDIS_URL: redis://cache:6379/1
+      INVENIO_CELERY_BROKER_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@mq:5672/
+      INVENIO_CELERY_RESULT_BACKEND: redis://cache:6379/2
+      INVENIO_BROKER_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@mq:5672/
+      INVENIO_RATELIMIT_STORAGE_URL: redis://cache:6379/3
+      INVENIO_COMMUNITIES_IDENTITIES_CACHE_REDIS_URL: redis://cache:6379/4
+      INVENIO_SEARCH_HOSTS: '["https://search:9200"]'
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_started
+      mq:
+        condition: service_started
+      search:
+        condition: service_healthy
+    volumes:
+      - uploaded_data:/opt/invenio/var/instance/data
+
+  scheduler:
+    image: inveniordm-hello-world:${IMAGE_TAG:-prod}
+    container_name: invenio_scheduler
+    restart: always
+    command: ["celery -A invenio_app.celery beat --scheduler invenio_jobs.services.scheduler:RunScheduler --loglevel=INFO"]
+    environment:
+      INVENIO_SECRET_KEY: ${INVENIO_SECRET_KEY}
+      INVENIO_SQLALCHEMY_DATABASE_URI: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      INVENIO_CACHE_TYPE: redis
+      INVENIO_CACHE_REDIS_URL: redis://cache:6379/0
+      INVENIO_CELERY_BROKER_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@mq:5672/
+      INVENIO_CELERY_RESULT_BACKEND: redis://cache:6379/2
+      INVENIO_BROKER_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@mq:5672/
+      INVENIO_SEARCH_HOSTS: '["https://search:9200"]'
+    depends_on:
+      db:
+        condition: service_healthy
+      mq:
+        condition: service_started
+
+  db:
+    image: postgres:14.13
+    container_name: invenio_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+    expose:
+      - "5432"
+
+  cache:
+    image: redis:7
+    container_name: invenio_cache
+    restart: always
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+    volumes:
+      - cache_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+    expose:
+      - "6379"
+
+  mq:
+    image: rabbitmq:3-management
+    container_name: invenio_mq
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    volumes:
+      - mq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+    expose:
+      - "5672"
+      - "15672"
+
+  search:
+    image: opensearchproject/opensearch:2.17.1
+    container_name: invenio_search
+    restart: always
+    environment:
+      - "cluster.name=invenio-search-cluster"
+      - "node.name=invenio-search-node"
+      - "bootstrap.memory_lock=true"
+      - "OPENSEARCH_JAVA_OPTS=-Xms${OPENSEARCH_HEAP:-1g} -Xmx${OPENSEARCH_HEAP:-1g}"
+      - "OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}"
+      - "DISABLE_INSTALL_DEMO_CONFIG=true"
+      - "DISABLE_SECURITY_PLUGIN=false"
+      - "discovery.type=single-node"
+      - "plugins.security.ssl.http.enabled=false"
+      - "plugins.security.authcz.admin_dn=['CN=kirk,OU=client,O=client,L=test,C=de']"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    mem_limit: ${OPENSEARCH_MEM_LIMIT:-2g}
+    volumes:
+      - search_data:/usr/share/opensearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsSL -u admin:${OPENSEARCH_INITIAL_ADMIN_PASSWORD} https://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 20
+    expose:
+      - "9200"
+      - "9600"
+
+volumes:
+  db_data:
+  cache_data:
+  mq_data:
+  search_data:
+  static_data:
+  uploaded_data:
+  archived_data:

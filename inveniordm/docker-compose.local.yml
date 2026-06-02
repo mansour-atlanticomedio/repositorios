@@ -1,0 +1,165 @@
+# =============================================================================
+# InvenioRDM - Entorno LOCAL / DESARROLLO
+# =============================================================================
+# Levanta unicamente los servicios de infraestructura (DB, cache, cola,
+# OpenSearch) y un contenedor "app" con el codigo del proyecto montado en vivo
+# para iterar rapido.
+#
+# Uso:
+#   cp .env.example .env
+#   docker compose -f docker-compose.local.yml --env-file .env up -d
+#   docker compose -f docker-compose.local.yml exec app invenio db create
+#   docker compose -f docker-compose.local.yml exec app invenio db init
+#   docker compose -f docker-compose.local.yml exec app invenio index init
+#   docker compose -f docker-compose.local.yml exec app invenio files location create default-location /opt/invenio/var/instance/data default
+#   docker compose -f docker-compose.local.yml exec app invenio-cli run
+# =============================================================================
+
+services:
+  app:
+    build:
+      context: ./hello-world
+      dockerfile: Dockerfile
+      args:
+        ENVIRONMENT: DEV
+    image: inveniordm-hello-world:dev
+    container_name: invenio_app
+    restart: unless-stopped
+    volumes:
+      - ./hello-world:/app
+      - hello_world_data:/opt/invenio/var/instance/data
+      - hello_world_archive:/opt/invenio/var/instance/archive
+    environment:
+      INVENIO_SECRET_KEY: ${INVENIO_SECRET_KEY:-CHANGE_ME}
+      INVENIO_SQLALCHEMY_DATABASE_URI: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      INVENIO_CACHE_TYPE: redis
+      INVENIO_CACHE_REDIS_URL: redis://cache:6379/0
+      INVENIO_ACCOUNTS_SESSION_REDIS_URL: redis://cache:6379/1
+      INVENIO_CELERY_BROKER_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@mq:5672/
+      INVENIO_CELERY_RESULT_BACKEND: redis://cache:6379/2
+      INVENIO_BROKER_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@mq:5672/
+      INVENIO_RATELIMIT_STORAGE_URL: redis://cache:6379/3
+      INVENIO_COMMUNITIES_IDENTITIES_CACHE_REDIS_URL: redis://cache:6379/4
+      INVENIO_SEARCH_HOSTS: '["http://search:9200"]'
+      INVENIO_WSGI_PROXIES: "2"
+      FLASK_DEBUG: "1"
+      PYTHONUNBUFFERED: "1"
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_started
+      mq:
+        condition: service_started
+      search:
+        condition: service_healthy
+    ports:
+      - "${APP_HOST_BIND:-127.0.0.1}:5000:5000"
+    command: >
+      sh -c "invenio collect -v &&
+             invenio webpack buildall &&
+             invenio-cli run --host 0.0.0.0 --port 5000"
+
+  db:
+    image: postgres:14.13
+    container_name: invenio_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-hello-world}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hello-world}
+      POSTGRES_DB: ${POSTGRES_DB:-hello-world}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-hello-world} -d ${POSTGRES_DB:-hello-world}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "${DOCKER_SERVICES_IP_BIND:-127.0.0.1}:5432:5432"
+
+  cache:
+    image: redis:7
+    container_name: invenio_cache
+    restart: unless-stopped
+    read_only: true
+    volumes:
+      - cache_data:/data
+    ports:
+      - "${DOCKER_SERVICES_IP_BIND:-127.0.0.1}:6379:6379"
+
+  mq:
+    image: rabbitmq:3-management
+    container_name: invenio_mq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+    volumes:
+      - mq_data:/var/lib/rabbitmq
+    ports:
+      - "${DOCKER_SERVICES_IP_BIND:-127.0.0.1}:5672:5672"
+      - "${DOCKER_SERVICES_IP_BIND:-127.0.0.1}:15672:15672"
+
+  search:
+    image: opensearchproject/opensearch:2.17.1
+    container_name: invenio_search
+    restart: unless-stopped
+    environment:
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD:-MyStr0ng#Pass2026}"
+      - "DISABLE_INSTALL_DEMO_CONFIG=true"
+      - "DISABLE_SECURITY_PLUGIN=true"
+      - "discovery.type=single-node"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    mem_limit: 2g
+    volumes:
+      - search_data:/usr/share/opensearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsSL http://localhost:9200/_cluster/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+    ports:
+      - "${DOCKER_SERVICES_IP_BIND:-127.0.0.1}:9200:9200"
+      - "${DOCKER_SERVICES_IP_BIND:-127.0.0.1}:9600:9600"
+
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:2.17.1
+    container_name: invenio_os_dashboards
+    restart: unless-stopped
+    environment:
+      - 'OPENSEARCH_HOSTS=["http://search:9200"]'
+      - "DISABLE_SECURITY_DASHBOARDS_PLUGIN=true"
+    depends_on:
+      search:
+        condition: service_healthy
+    ports:
+      - "${DOCKER_SERVICES_IP_BIND:-127.0.0.1}:5601:5601"
+
+  pgadmin:
+    image: dpage/pgadmin4:6
+    container_name: invenio_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-info@hello-world.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-hello-world}
+    volumes:
+      - ./hello-world/docker/pgadmin/servers.json:/pgadmin4/servers.json
+    ports:
+      - "${DOCKER_SERVICES_IP_BIND:-127.0.0.1}:5050:80"
+
+volumes:
+  db_data:
+  cache_data:
+  mq_data:
+  search_data:
+  hello_world_data:
+  hello_world_archive:
