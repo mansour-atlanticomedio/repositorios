@@ -79,7 +79,7 @@ services:
         /dspace/bin/dspace database repair
         /dspace/bin/dspace database migrate
         mkdir -p /dspace/log && ln -sf /dev/stdout /dspace/log/dspace.log
-        exec java $$JAVA_OPTS -jar /dspace/webapps/server-boot.jar --dspace.dir=/dspace
+        exec java $$JAVA_OPTS -jar /dspace/webapps/server-boot.jar --dspace.dir=/dspace --server.servlet.context-path=/dspace/server --server.forward-headers-strategy=FRAMEWORK
 
 
   dspace-angular:
@@ -106,6 +106,11 @@ services:
       - DSPACE_REST_PORT=443
       - DSPACE_REST_NAMESPACE=/dspace/server
       - DSPACE_REST_SSL=true
+
+      # Reduce bot cache TTL from 1 day to 5 minutes to avoid caching error pages for too long
+      - DSPACE_CACHE_SERVERSIDE_BOTCACHE_TIMETOLIVE=300000
+    extra_hosts:
+      - "192.168.0.236:host-gateway"
     networks:
       - dspacenet
 
