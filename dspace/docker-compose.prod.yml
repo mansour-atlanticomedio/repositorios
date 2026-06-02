@@ -65,6 +65,7 @@ services:
       - dspace__P__server__P__url=https://192.168.0.236/dspace/server
       - dspace__P__ui__P__url=https://192.168.0.236/dspace
       - dspace__P__dir=/dspace
+      - rest__cors__allowed-origins=https://192.168.0.236
     volumes:
       - assetstore:/dspace/assetstore
     networks:
@@ -81,11 +82,11 @@ services:
 
 
   dspace-angular:
-    image: dspace/dspace-angular:dspace-8.0
+    # image: dspace/dspace-angular:dspace-8.0
     container_name: dspace-angular
-    # build:
-    #   context: ./dspace-angular
-    #   dockerfile: Dockerfile.dist
+    build:
+      context: ./dspace-angular
+      dockerfile: Dockerfile.dist
     env_file:
       - .env.prod
     depends_on:
