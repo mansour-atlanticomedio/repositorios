@@ -65,8 +65,8 @@ services:
       - db__P__username=${DB_USER} 
       - db__P__password=${DB_PASSWORD} 
       - solr__P__server=http://dspace-solr:8983/solr 
-      - dspace__P__server__P__url=https://www.atlanticomedio.es/dspace/server
-      - dspace__P__ui__P__url=https://www.atlanticomedio.es/dspace
+      - dspace__P__server__P__url=https://192.168.0.236/dspace/server
+      - dspace__P__ui__P__url=https://192.168.0.236/dspace
       - dspace__P__dir=/dspace
     volumes:
       - assetstore:/dspace/assetstore
@@ -106,7 +106,7 @@ services:
       - DSPACE_NAMESPACE=/dspace
       - DSPACE_SSL=false
       
-      - DSPACE_REST_HOST=www.atlanticomedio.es
+      - DSPACE_REST_HOST=192.168.0.236
       - DSPACE_REST_PORT=443
       - DSPACE_REST_NAMESPACE=/dspace/server
       - DSPACE_REST_SSL=true
