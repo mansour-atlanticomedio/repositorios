@@ -76,6 +76,7 @@ services:
       - |
         while (! </dev/tcp/dspacedb/5432) > /dev/null 2>&1; do sleep 1; done;
         sleep 3;
+        /dspace/bin/dspace database repair
         /dspace/bin/dspace database migrate
         mkdir -p /dspace/log && ln -sf /dev/stdout /dspace/log/dspace.log
         exec java $$JAVA_OPTS -jar /dspace/webapps/server-boot.jar --dspace.dir=/dspace
@@ -95,6 +96,7 @@ services:
       - "4000:4000"
     environment:
       - NODE_ENV=production
+      - NODE_TLS_REJECT_UNAUTHORIZED=0
       - DSPACE_HOST=0.0.0.0
       - DSPACE_PORT=4000
       - DSPACE_NAMESPACE=/dspace
