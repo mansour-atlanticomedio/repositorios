@@ -16,7 +16,7 @@
     "build": "ng build --configuration development",
     "build:stats": "ng build --stats-json",
     "build:prod": "cross-env NODE_ENV=production yarn run build:ssr",
-    "build:ssr": "ng build --configuration production --base-href /dspace/ && ng run dspace-angular:server:production",
+    "build:ssr": "ng build --configuration production && ng run dspace-angular:server:production",
     "build:lint": "rimraf 'lint/dist/**/*.js' 'lint/dist/**/*.js.map' && tsc -b lint/tsconfig.json",
     "test": "ng test --source-map=true --watch=false --configuration test",
     "test:watch": "nodemon --exec \"ng test --source-map=true --watch=true --configuration test\"",
