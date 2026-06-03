@@ -1,8 +1,0 @@
-.env
-.env.*
-**/.env
-*.env
-dspace/.env
-inveniordm/.env.prod
-.env.prod
-dspace\dspace-logs
