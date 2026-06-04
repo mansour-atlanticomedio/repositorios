@@ -1,12 +1,9 @@
 services:
   dspacedb:
     image: dspace/dspace-postgres-pgcrypto:dspace-8.0
-    container_name: dspacedb
-    environment:
-      - PGDATA=/var/lib/postgresql/data/pgdata
-      - POSTGRES_DB=${DB_NAME}
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    container_name: dspace-db
+    env_file:
+      - .env.prod
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./init-db:/docker-entrypoint-initdb.d:ro
@@ -27,7 +24,7 @@ services:
     networks:
       - dspacenet
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8983/solr/admin/cores?action=STATUS"]
+      test: ["CMD", "curl", "-f", "http://192.168.0.236:8983/solr/admin/cores?action=STATUS"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -62,32 +59,34 @@ services:
       - db__P__username=${DB_USER} 
       - db__P__password=${DB_PASSWORD} 
       - solr__P__server=http://dspace-solr:8983/solr 
-      - dspace__P__server__P__url=https://192.168.0.236/dspace/server
-      - dspace__P__ui__P__url=https://192.168.0.236/dspace
+      - dspace__P__server__P__url=http://192.168.0.236:8090/server 
       - dspace__P__dir=/dspace
-      - rest__cors__allowed-origins=https://192.168.0.236
     volumes:
       - assetstore:/dspace/assetstore
+      # - ./dspace-logs:/dspace/log
     networks:
       - dspacenet
     entrypoint: 
       - /bin/bash
       - -c
       - |
+        # Esperar por TCP de Postgres
         while (! </dev/tcp/dspacedb/5432) > /dev/null 2>&1; do sleep 1; done;
+        
         sleep 3;
+        
         /dspace/bin/dspace database repair
+        
         /dspace/bin/dspace database migrate
+        
         mkdir -p /dspace/log && ln -sf /dev/stdout /dspace/log/dspace.log
-        exec java $$JAVA_OPTS -jar /dspace/webapps/server-boot.jar --dspace.dir=/dspace --server.servlet.context-path=/dspace/server --server.forward-headers-strategy=FRAMEWORK
-
+        exec java $$JAVA_OPTS -jar /dspace/webapps/server-boot.jar --dspace.dir=/dspace
+    
+    
 
   dspace-angular:
-    # image: dspace/dspace-angular:dspace-8.0
+    image: dspace/dspace-angular:dspace-8.0
     container_name: dspace-angular
-    build:
-      context: ./dspace-angular
-      dockerfile: Dockerfile.dist
     env_file:
       - .env.prod
     depends_on:
@@ -95,20 +94,15 @@ services:
     ports:
       - "4000:4000"
     environment:
-      - NODE_ENV=production
-
-      - DSPACE_HOST=0.0.0.0
+      - DSPACE_HOST=192.168.0.236
       - DSPACE_PORT=4000
-      - DSPACE_NAMESPACE=/dspace
+      - DSPACE_NAMESPACE=/
       - DSPACE_SSL=false
-
+      
       - DSPACE_REST_HOST=192.168.0.236
-      - DSPACE_REST_PORT=443
-      - DSPACE_REST_NAMESPACE=/dspace/server
-      - DSPACE_REST_SSL=true
-      - NODE_TLS_REJECT_UNAUTHORIZED=0
-
-      - DSPACE_CACHE_SERVERSIDE_BOTCACHE_TIMETOLIVE=300000
+      - DSPACE_REST_PORT=8090
+      - DSPACE_REST_NAMESPACE=/server
+      - DSPACE_REST_SSL=false
     networks:
       - dspacenet
 
