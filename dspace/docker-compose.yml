@@ -1,12 +1,9 @@
 services:
   dspacedb:
     image: dspace/dspace-postgres-pgcrypto:dspace-8.0
-    container_name: dspacedb
-    environment:
-      - PGDATA=/var/lib/postgresql/data/pgdata
-      - POSTGRES_DB=${DB_NAME}
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    container_name: dspace-db
+    env_file:
+      - .env
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./init-db:/docker-entrypoint-initdb.d:ro
@@ -47,9 +44,6 @@ services:
   dspace-backend:
     image: dspace/dspace:dspace-8.0
     container_name: dspace
-    # build:
-    #   context: ./dspace-backend 
-    #   dockerfile: Dockerfile
     env_file:
       - .env
     depends_on:
@@ -65,9 +59,7 @@ services:
       - db__P__username=${DB_USER} 
       - db__P__password=${DB_PASSWORD} 
       - solr__P__server=http://dspace-solr:8983/solr 
-      - dspace__P__server__P__url=http://192.168.1.140:8090/server
-      - dspace__P__ui__P__url=http://192.168.1.140:4000/dspace
-      - rest__P__cors__P__allowed-origins=http://192.168.1.140:4000
+      - dspace__P__server__P__url=http://localhost:8090/server 
       - dspace__P__dir=/dspace
     volumes:
       - assetstore:/dspace/assetstore
@@ -90,6 +82,7 @@ services:
         mkdir -p /dspace/log && ln -sf /dev/stdout /dspace/log/dspace.log
         exec java $$JAVA_OPTS -jar /dspace/webapps/server-boot.jar --dspace.dir=/dspace
     
+    
 
   dspace-angular:
     image: dspace/dspace-angular:dspace-8.0
@@ -101,13 +94,12 @@ services:
     ports:
       - "4000:4000"
     environment:
-      - NODE_ENV=production
-      - DSPACE_HOST=0.0.0.0
+      - DSPACE_HOST=localhost
       - DSPACE_PORT=4000
-      - DSPACE_NAMESPACE=/dspace
+      - DSPACE_NAMESPACE=/
       - DSPACE_SSL=false
       
-      - DSPACE_REST_HOST=192.168.1.140
+      - DSPACE_REST_HOST=localhost
       - DSPACE_REST_PORT=8090
       - DSPACE_REST_NAMESPACE=/server
       - DSPACE_REST_SSL=false
