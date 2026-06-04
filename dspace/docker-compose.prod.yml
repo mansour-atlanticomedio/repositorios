@@ -42,13 +42,13 @@ services:
         exec solr-foreground -force
 
   dspace-backend:
-    image: dspace/dspace:dspace-8.0
-    container_name: dspace
-    env_file:
-      - .env.prod
+    # image: dspace/dspace:dspace-8.0
     build:
       context: ./dspace-backend
       dockerfile: Dockerfile
+    container_name: dspace
+    env_file:
+      - .env.prod
     depends_on:
       dspacedb:
         condition: service_healthy
@@ -88,7 +88,10 @@ services:
     
 
   dspace-angular:
-    image: dspace/dspace-angular:dspace-8.0
+    # image: dspace/dspace-angular:dspace-8.0
+    build:
+      context: ./dspace-angular
+      dockerfile: Dockerfile
     container_name: dspace-angular
     env_file:
       - .env.prod
@@ -96,16 +99,16 @@ services:
       - dspace-backend
     ports:
       - "4000:4000"
-    environment:
-      - DSPACE_HOST=192.168.0.236
-      - DSPACE_PORT=4000
-      - DSPACE_NAMESPACE=/dspace
-      - DSPACE_SSL=false
+    # environment:
+    #   - DSPACE_HOST=192.168.0.236
+    #   - DSPACE_PORT=4000
+    #   - DSPACE_NAMESPACE=/dspace
+    #   - DSPACE_SSL=false
       
-      - DSPACE_REST_HOST=192.168.0.236
-      - DSPACE_REST_PORT=8090
-      - DSPACE_REST_NAMESPACE=/server
-      - DSPACE_REST_SSL=false
+    #   - DSPACE_REST_HOST=192.168.0.236
+    #   - DSPACE_REST_PORT=8090
+    #   - DSPACE_REST_NAMESPACE=/server
+    #   - DSPACE_REST_SSL=false
     networks:
       - dspacenet
 
