@@ -46,6 +46,9 @@ services:
     container_name: dspace
     env_file:
       - .env.prod
+    build:
+      - context: ./dspace-backend
+      - dockerfile: Dockerfile
     depends_on:
       dspacedb:
         condition: service_healthy
@@ -53,14 +56,14 @@ services:
         condition: service_healthy
     ports:
       - "8090:8080"
-    environment:
-      - JAVA_OPTS=-Xmx2048m -Xms1024m 
-      - db__P__url=jdbc:postgresql://dspacedb:5432/${DB_NAME} 
-      - db__P__username=${DB_USER} 
-      - db__P__password=${DB_PASSWORD} 
-      - solr__P__server=http://dspace-solr:8983/solr 
-      - dspace__P__server__P__url=http://192.168.0.236:8090/server 
-      - dspace__P__dir=/dspace
+    # environment:
+    #   - JAVA_OPTS=-Xmx2048m -Xms1024m 
+    #   - db__P__url=jdbc:postgresql://dspacedb:5432/${DB_NAME} 
+    #   - db__P__username=${DB_USER} 
+    #   - db__P__password=${DB_PASSWORD} 
+    #   - solr__P__server=http://dspace-solr:8983/solr 
+    #   - dspace__P__server__P__url=http://192.168.0.236:8090/server 
+    #   - dspace__P__dir=/dspace
     volumes:
       - assetstore:/dspace/assetstore
       # - ./dspace-logs:/dspace/log
@@ -96,7 +99,7 @@ services:
     environment:
       - DSPACE_HOST=192.168.0.236
       - DSPACE_PORT=4000
-      - DSPACE_NAMESPACE=/
+      - DSPACE_NAMESPACE=/dspace
       - DSPACE_SSL=false
       
       - DSPACE_REST_HOST=192.168.0.236
