@@ -43,6 +43,10 @@ services:
       INVENIO_COMMUNITIES_IDENTITIES_CACHE_REDIS_URL: redis://cache:6379/4
       INVENIO_SEARCH_HOSTS: '["http://search:9200"]'
       INVENIO_WSGI_PROXIES: "2"
+      INVENIO_SITE_UI_URL: http://localhost:5000
+      INVENIO_SITE_API_URL: http://localhost:5000/api
+      INVENIO_FORCE_HTTPS: "false"
+      INVENIO_SESSION_COOKIE_SECURE: "false"
       FLASK_DEBUG: "1"
       PYTHONUNBUFFERED: "1"
     depends_on:
