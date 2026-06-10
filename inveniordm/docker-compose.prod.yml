@@ -1,8 +1,9 @@
 # =============================================================================
 # InvenioRDM - Entorno PRODUCCION
 # =============================================================================
-# Stack completo: frontend nginx, dos workers uwsgi (UI + API), worker y
-# scheduler de Celery, y todos los servicios de infraestructura.
+# Stack completo: dos workers uwsgi (UI + API), worker y scheduler de
+# Celery, y todos los servicios de infraestructura. Sin nginx — Apache
+# (host) hace de proxy inverso.
 #
 # Uso:
 #   cp .env.example .env
@@ -20,23 +21,6 @@
 # =============================================================================
 
 services:
-  frontend:
-    build:
-      context: ./hello-world/docker/nginx
-    image: inveniordm-hello-world-frontend:${IMAGE_TAG:-prod}
-    container_name: invenio_frontend
-    restart: always
-    depends_on:
-      web-ui:
-        condition: service_started
-      web-api:
-        condition: service_started
-    volumes:
-      - static_data:/opt/invenio/var/instance/static
-    ports:
-      - "${FRONTEND_HTTP_BIND:-0.0.0.0}:80:80"
-      - "${FRONTEND_HTTPS_BIND:-0.0.0.0}:443:443"
-
   web-ui:
     build:
       context: ./hello-world
@@ -58,11 +42,10 @@ services:
       INVENIO_BROKER_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@mq:5672/
       INVENIO_RATELIMIT_STORAGE_URL: redis://cache:6379/3
       INVENIO_COMMUNITIES_IDENTITIES_CACHE_REDIS_URL: redis://cache:6379/4
-      INVENIO_SITE_UI_URL: https://localhost
-      INVENIO_SITE_API_URL: https://localhost/api
+      INVENIO_SITE_UI_URL: https://localhost/invenio
+      INVENIO_SITE_API_URL: https://localhost/invenio/api
       INVENIO_SEARCH_HOSTS: '["http://search:9200"]'
-      INVENIO_WSGI_PROXIES: "2"
-      OAUTHLIB_INSECURE_TRANSPORT: "0"
+      INVENIO_WSGI_PROXIES: "1"
     depends_on:
       db:
         condition: service_healthy
@@ -73,11 +56,10 @@ services:
       search:
         condition: service_healthy
     volumes:
-      - static_data:/opt/invenio/var/instance/static
       - uploaded_data:/opt/invenio/var/instance/data
       - archived_data:/opt/invenio/var/instance/archive
-    expose:
-      - "5000"
+    ports:
+      - "5000:5000"
 
   web-api:
     build:
@@ -100,11 +82,10 @@ services:
       INVENIO_BROKER_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@mq:5672/
       INVENIO_RATELIMIT_STORAGE_URL: redis://cache:6379/3
       INVENIO_COMMUNITIES_IDENTITIES_CACHE_REDIS_URL: redis://cache:6379/4
-      INVENIO_SITE_UI_URL: https://localhost
-      INVENIO_SITE_API_URL: https://localhost/api
+      INVENIO_SITE_UI_URL: https://localhost/invenio
+      INVENIO_SITE_API_URL: https://localhost/invenio/api
       INVENIO_SEARCH_HOSTS: '["http://search:9200"]'
-      INVENIO_WSGI_PROXIES: "2"
-      OAUTHLIB_INSECURE_TRANSPORT: "0"
+      INVENIO_WSGI_PROXIES: "1"
     depends_on:
       db:
         condition: service_healthy
@@ -117,8 +98,8 @@ services:
     volumes:
       - uploaded_data:/opt/invenio/var/instance/data
       - archived_data:/opt/invenio/var/instance/archive
-    expose:
-      - "5000"
+    ports:
+      - "5001:5000"
 
   worker:
     image: inveniordm-hello-world:${IMAGE_TAG:-prod}
@@ -136,7 +117,7 @@ services:
       INVENIO_BROKER_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@mq:5672/
       INVENIO_RATELIMIT_STORAGE_URL: redis://cache:6379/3
       INVENIO_COMMUNITIES_IDENTITIES_CACHE_REDIS_URL: redis://cache:6379/4
-      INVENIO_SEARCH_HOSTS: '["https://search:9200"]'
+      INVENIO_SEARCH_HOSTS: '["http://search:9200"]'
     depends_on:
       db:
         condition: service_healthy
@@ -162,7 +143,7 @@ services:
       INVENIO_CELERY_BROKER_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@mq:5672/
       INVENIO_CELERY_RESULT_BACKEND: redis://cache:6379/2
       INVENIO_BROKER_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@mq:5672/
-      INVENIO_SEARCH_HOSTS: '["https://search:9200"]'
+      INVENIO_SEARCH_HOSTS: '["http://search:9200"]'
     depends_on:
       db:
         condition: service_healthy
@@ -256,6 +237,5 @@ volumes:
   cache_data:
   mq_data:
   search_data:
-  static_data:
   uploaded_data:
   archived_data:
