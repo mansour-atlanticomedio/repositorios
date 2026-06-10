@@ -1,72 +1,94 @@
-# InvenioRDM v13 — Notas del proyecto
+# InvenioRDM — Docker autocontenido
 
 ## Estructura
 
 ```
 inveniordm/
-├── docker-compose.local.yml      # Dev: app + db + cache + mq + search + dashboards + pgadmin
-├── docker-compose.prod.yml       # Prod: nginx + web-ui + web-api + worker + scheduler
-├── .env.example                   # Plantilla de variables de entorno
-├── hello-world/                   # Proyecto InvenioRDM generado por cookiecutter
-│   ├── Dockerfile                 # Imagen de la app
-│   ├── Pipfile / Pipfile.lock    # Dependencias Python (generado con Python 3.12)
-│   ├── invenio.cfg               # Configuración de la app
-│   ├── site/                     # Paquete editable hello-world
-│   ├── assets/, static/          # Frontend assets
-│   └── docker/                   # Nginx, uwsgi, pgadmin configs
-└── AGENTS.md                     # Este archivo
+├── Dockerfile.dev           # Dev — build autocontenido (Flask run, HTTP)
+├── Dockerfile               # Prod — build autocontenido (uWSGI, sin Nginx)
+├── docker-compose.dev.yml   # Dev — orquestación (app + servicios)
+├── docker-compose.yml       # Prod — orquestación (web-ui + web-api + worker + scheduler + servicios)
+├── .env.example             # Plantilla de variables
+├── AGENTS.md                # Esta documentación
+├── hello-world/             # Código fuente de la app InvenioRDM
+│   ├── Dockerfile           # Dockerfile original (se mantiene como referencia)
+│   ├── Pipfile / Pipfile.lock
+│   ├── invenio.cfg
+│   ├── site/
+│   ├── assets/ / static/
+│   ├── docker/uwsgi/
+│   └── ...
 ```
 
-## Build
+## Concepto
+
+Las imágenes son **autocontenidas**: todo el código de la app se copia dentro de la imagen en el build. No se montan volúmenes de código fuente. Para ver cambios, reconstruir la imagen.
+
+## Entorno Dev — HTTP (puerto 5000)
+
+**Dockerfile.dev:** `CMD ["invenio", "run", "--host", "0.0.0.0", "--port", "5000"]`
 
 ```bash
-docker compose -f docker-compose.local.yml --env-file .env build --no-cache app
+cp .env.example .env
+docker compose -f docker-compose.dev.yml --env-file .env build --no-cache app
+docker compose -f docker-compose.dev.yml --env-file .env up -d
+
+# Inicializar (solo primera vez)
+docker compose -f docker-compose.dev.yml exec app invenio db create
+docker compose -f docker-compose.dev.yml exec app invenio db init
+docker compose -f docker-compose.dev.yml exec app invenio index init
+docker compose -f docker-compose.dev.yml exec app invenio files location create --default default-location /opt/invenio/var/instance/data
+
+# Crear admin
+docker compose -f docker-compose.dev.yml exec app invenio users create admin@example.com --password <PASSWORD> --active
+docker compose -f docker-compose.dev.yml exec app invenio roles add admin@example.com admin
 ```
 
-### Problemas conocidos del build
+**Acceso:** http://localhost:5000
 
-1. **Python 3.12 requerido**: La imagen base `registry.cern.ch/inveniosoftware/almalinux:1` viene con Python 3.9, pero el `Pipfile.lock` se generó para Python 3.12 y muchos paquetes tienen markers `python_version >= '3.10'`. Se instaló Python 3.12 en el Dockerfile.
+## Entorno Prod — uWSGI, sin Nginx (puerto 5000 / 5001)
 
-2. **Directorio `assets/` faltante**: La imagen base crea `${INVENIO_INSTANCE_PATH}/static/` pero no `${INVENIO_INSTANCE_PATH}/assets/`. Se agregó `mkdir -p` antes del `cp`.
+**Dockerfile:** `CMD ["uwsgi", "/opt/invenio/var/instance/uwsgi_ui.ini"]`
 
-## Entrypoint
-
-El Dockerfile tiene `ENTRYPOINT ["bash", "-c"]`. No usar `command:` en docker-compose con este entrypoint porque no se combina bien. En su lugar, usar `entrypoint:` como string:
-
-```yaml
-entrypoint: invenio run --host 0.0.0.0 --port 5000
-```
-
-## Inicialización (primera vez)
+| Servicio   | Entrypoint                        | Puerto expuesto |
+|------------|-----------------------------------|-----------------|
+| web-ui     | uwsgi uwsgi_ui.ini (CMD por defecto) | 5000 → 5000   |
+| web-api    | uwsgi uwsgi_rest.ini              | 5001 → 5000    |
+| worker     | celery worker                     | —               |
+| scheduler  | celery beat                       | —               |
 
 ```bash
-docker compose -f docker-compose.local.yml --env-file .env exec app invenio db create
-docker compose -f docker-compose.local.yml --env-file .env exec app invenio db init
-docker compose -f docker-compose.local.yml --env-file .env exec app invenio index init
-docker compose -f docker-compose.local.yml --env-file .env exec app invenio files location create --default default-location /opt/invenio/var/instance/data
+cp .env.example .env
+docker compose -f docker-compose.yml --env-file .env build --no-cache
+docker compose -f docker-compose.yml --env-file .env up -d
+
+# Inicializar (solo primera vez)
+docker compose -f docker-compose.yml exec web-api invenio db create
+docker compose -f docker-compose.yml exec web-api invenio db init
+docker compose -f docker-compose.yml exec web-api invenio index init
+docker compose -f docker-compose.yml exec web-api invenio files location create --default default-location /opt/invenio/var/instance/data
 ```
 
-## Crear usuario admin
+**Acceso directo (sin proxy):**
+- UI: http://localhost:5000
+- API: http://localhost:5001
 
-```bash
-docker compose -f docker-compose.local.yml --env-file .env exec app invenio users create admin@hello-world.com --password <PASSWORD> --active
-docker compose -f docker-compose.local.yml --env-file .env exec app invenio roles add admin@hello-world.com admin
-```
+**Con proxy reverso (Apache, Caddy, etc.):** El proxy termina SSL y redirige a web-ui:5000 (UI) y web-api:5001 (API). Las rutas están configuradas en `/invenio`.
 
 ## Puertos
 
-| Servicio | Puerto |
-|----------|--------|
-| App InvenioRDM | 5000 |
-| PostgreSQL | 5432 |
-| Redis | 6379 |
-| RabbitMQ | 5672 / 15672 |
-| OpenSearch | 9200 / 9600 |
-| OpenSearch Dashboards | 5601 |
-| pgAdmin | 5050 |
+| Servicio   | Dev       | Prod              |
+|------------|-----------|-------------------|
+| App UI     | 5000      | 5000 (web-ui)     |
+| App API    | —         | 5001 (web-api)    |
+| PostgreSQL | 5432      | 5432              |
+| Redis      | 6379      | 6379              |
+| RabbitMQ   | 5672/15672| 5672/15672        |
+| OpenSearch | 9200/9600 | 9200/9600         |
 
-## Troubleshooting
+## Notas
 
-- **Puerto 5432 ocupado**: PostgreSQL local. Parar con `net stop postgresql-*` o mapear a 5433.
-- **invenio-cli: command not found**: No usar `invenio-cli run`, usar `invenio run`.
-- **Container restarting**: No usar `ENTRYPOINT ["bash", "-c"]` con `command:` en compose. Usar `entrypoint:` como string en su lugar.
+- Las imágenes son autocontenidas: no necesitas montar el código fuente
+- Para cambios en el código, reconstruye la imagen con `build --no-cache`
+- Los datos persistentes (DB, uploads) se guardan en volúmenes Docker
+- El `hello-world/Dockerfile` original se mantiene como referencia

@@ -23,9 +23,10 @@ RUN mkdir -p ${INVENIO_INSTANCE_PATH}/assets/ && \
     invenio collect --verbose && \
     invenio webpack buildall
 
-ENV INVENIO_SITE_UI_URL=https://localhost
-ENV INVENIO_SITE_API_URL=https://localhost/api
+ENV INVENIO_SITE_UI_URL=http://localhost:5000
+ENV INVENIO_SITE_API_URL=http://localhost:5000/api
+ENV FLASK_ENV=development
 
 EXPOSE 5000
 
-CMD ["uwsgi", "/opt/invenio/var/instance/uwsgi_ui.ini"]
+CMD ["invenio", "run", "--host", "0.0.0.0", "--port", "5000"]
