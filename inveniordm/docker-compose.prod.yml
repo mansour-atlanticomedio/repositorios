@@ -229,13 +229,9 @@ services:
       - "node.name=invenio-search-node"
       - "bootstrap.memory_lock=true"
       - "OPENSEARCH_JAVA_OPTS=-Xms${OPENSEARCH_HEAP:-1g} -Xmx${OPENSEARCH_HEAP:-1g}"
-      - "OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}"
       - "DISABLE_INSTALL_DEMO_CONFIG=true"
-      - "DISABLE_SECURITY_PLUGIN=false"
+      - "DISABLE_SECURITY_PLUGIN=true"
       - "discovery.type=single-node"
-      - "plugins.security.ssl.http.enabled=false"
-      - "plugins.security.ssl.transport.enabled=false"
-      - "plugins.security.authcz.admin_dn=['CN=kirk,OU=client,O=client,L=test,C=de']"
     ulimits:
       memlock:
         soft: -1
@@ -247,7 +243,7 @@ services:
     volumes:
       - search_data:/usr/share/opensearch/data
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsSL -u admin:${OPENSEARCH_INITIAL_ADMIN_PASSWORD} http://localhost:9200/_cluster/health || exit 1"]
+      test: ["CMD-SHELL", "curl -fsSL http://localhost:9200/_cluster/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 20
