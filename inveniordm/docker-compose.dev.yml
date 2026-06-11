@@ -35,6 +35,7 @@ services:
       search:
         condition: service_healthy
     volumes:
+      - ./hello-world/invenio.dev.cfg:/opt/invenio/var/instance/invenio.cfg
       - invenio_data:/opt/invenio/var/instance/data
 
   db:
