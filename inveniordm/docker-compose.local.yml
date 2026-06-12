@@ -59,7 +59,7 @@ services:
       search:
         condition: service_healthy
     ports:
-      - "${APP_HOST_BIND:-127.0.0.1}:5000:5000"
+      - "${APP_HOST_BIND:-0.0.0.0}:5000:5000"
     command: []
 
   db:

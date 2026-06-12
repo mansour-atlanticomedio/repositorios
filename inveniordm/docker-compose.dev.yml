@@ -102,3 +102,4 @@ volumes:
   mq_data:
   search_data:
   invenio_data:
+

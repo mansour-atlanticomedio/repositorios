@@ -42,8 +42,8 @@ services:
       INVENIO_BROKER_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@mq:5672/
       INVENIO_RATELIMIT_STORAGE_URL: redis://cache:6379/3
       INVENIO_COMMUNITIES_IDENTITIES_CACHE_REDIS_URL: redis://cache:6379/4
-      INVENIO_SITE_UI_URL: https://localhost/invenio
-      INVENIO_SITE_API_URL: https://localhost/invenio/api
+      INVENIO_SITE_UI_URL: https://${INVENIO_HOSTNAME:-localhost}/invenio
+      INVENIO_SITE_API_URL: https://${INVENIO_HOSTNAME:-localhost}/invenio/api
       INVENIO_SEARCH_HOSTS: '["http://search:9200"]'
       INVENIO_WSGI_PROXIES: "1"
     depends_on:
@@ -59,7 +59,7 @@ services:
       - uploaded_data:/opt/invenio/var/instance/data
       - archived_data:/opt/invenio/var/instance/archive
     ports:
-      - "5000:5000"
+      - "0.0.0.0:5000:5000"
 
   web-api:
     build:
@@ -82,8 +82,8 @@ services:
       INVENIO_BROKER_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@mq:5672/
       INVENIO_RATELIMIT_STORAGE_URL: redis://cache:6379/3
       INVENIO_COMMUNITIES_IDENTITIES_CACHE_REDIS_URL: redis://cache:6379/4
-      INVENIO_SITE_UI_URL: https://localhost/invenio
-      INVENIO_SITE_API_URL: https://localhost/invenio/api
+      INVENIO_SITE_UI_URL: https://${INVENIO_HOSTNAME:-localhost}/invenio
+      INVENIO_SITE_API_URL: https://${INVENIO_HOSTNAME:-localhost}/invenio/api
       INVENIO_SEARCH_HOSTS: '["http://search:9200"]'
       INVENIO_WSGI_PROXIES: "1"
     depends_on:
@@ -99,7 +99,7 @@ services:
       - uploaded_data:/opt/invenio/var/instance/data
       - archived_data:/opt/invenio/var/instance/archive
     ports:
-      - "5001:5000"
+      - "0.0.0.0:5001:5000"
 
   worker:
     image: inveniordm-hello-world:${IMAGE_TAG:-prod}

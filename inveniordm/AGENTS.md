@@ -59,6 +59,8 @@ docker compose -f docker-compose.dev.yml exec app invenio roles add admin@exampl
 
 ```bash
 cp .env.example .env
+# (Opcional) Configurar hostname para produccion:
+# cp .env.prop .env.prod  # y editar INVENIO_HOSTNAME
 docker compose -f docker-compose.yml --env-file .env build --no-cache
 docker compose -f docker-compose.yml --env-file .env up -d
 
@@ -70,10 +72,12 @@ docker compose -f docker-compose.yml exec web-api invenio files location create 
 ```
 
 **Acceso directo (sin proxy):**
-- UI: http://localhost:5000
-- API: http://localhost:5001
+- UI: http://localhost:5000  (o http://<IP>:5000 si usas 0.0.0.0)
+- API: http://localhost:5001  (o http://<IP>:5001 si usas 0.0.0.0)
 
 **Con proxy reverso (Apache, Caddy, etc.):** El proxy termina SSL y redirige a web-ui:5000 (UI) y web-api:5001 (API). Las rutas están configuradas en `/invenio`.
+
+> **Configurar hostname:** Define `INVENIO_HOSTNAME` en `.env.prod` (ver `.env.prop`) y pásalo con `--env-file .env.prod` al levantar.
 
 ## Puertos
 

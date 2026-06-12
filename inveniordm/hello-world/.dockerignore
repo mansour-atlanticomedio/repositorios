@@ -1,2 +1,11 @@
-# Ignore local virtualenv (if present)
 .venv/
+node_modules/
+.git/
+__pycache__/
+*.pyc
+.DS_Store
+.env
+*.md
+docker-compose*.yml
+docker-services.yml
+.invenio

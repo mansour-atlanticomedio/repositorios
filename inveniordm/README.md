@@ -66,7 +66,7 @@ docker compose -f docker-compose.local.yml exec app invenio files location creat
 docker compose -f docker-compose.local.yml exec app invenio oai harvester init
 
 # Acceder a la app
-# UI/API:  http://127.0.0.1:5000
+# UI/API:  http://localhost:5000  (o http://<IP-DEL-HOST>:5000 si es remoto)
 # Postgres: 127.0.0.1:5432  (user/pass: hello-world/hello-world)
 # Redis:    127.0.0.1:6379
 # RabbitMQ: 127.0.0.1:15672  (guest/guest)
@@ -82,12 +82,14 @@ docker compose -f docker-compose.local.yml logs -f app
 
 ```bash
 cp .env.example .env
-# $EDITOR .env  # cambiar TODOS los CHANGE_ME y passwords
+cp .env.prop .env.prod
+# $EDITOR .env      # cambiar TODOS los CHANGE_ME y passwords
+# $EDITOR .env.prod # cambiar INVENIO_HOSTNAME al dominio/IP publico
 # MUY IMPORTANTE: regenerar INVENIO_SECRET_KEY con:
 #   python -c "import secrets; print(secrets.token_urlsafe(64))"
 
-docker compose -f docker-compose.prod.yml --env-file .env build
-docker compose -f docker-compose.prod.yml --env-file .env up -d
+docker compose -f docker-compose.prod.yml --env-file .env --env-file .env.prod build
+docker compose -f docker-compose.prod.yml --env-file .env --env-file .env.prod up -d
 
 # Inicialización una sola vez (dentro de web-api)
 docker compose -f docker-compose.prod.yml exec web-api invenio db create
@@ -111,7 +113,7 @@ docker compose -f docker-compose.prod.yml exec web-api invenio roles create admi
 | **Servicios app** | `app` único (código montado en vivo) | `web-ui` + `web-api` (uwsgi) + `worker` (celery) + `scheduler` (celery beat) |
 | **Servidor** | `invenio-cli run` (Flask dev server) | `uwsgi` con `uwsgi_ui.ini` y `uwsgi_rest.ini` |
 | **Frontend** | No - lo sirve `app` | `frontend` con nginx (puertos 80/443) |
-| **Bind frontend** | `127.0.0.1:5000` | `${FRONTEND_HTTP_BIND:-0.0.0.0}:80`, `:443` |
+| **Bind frontend** | `${APP_HOST_BIND:-0.0.0.0}:5000` | `${FRONTEND_HTTP_BIND:-0.0.0.0}:80`, `:443` |
 | **OpenSearch** | `DISABLE_SECURITY_PLUGIN=true` (sin auth) | `false` (HTTPS, requiere `OPENSEARCH_INITIAL_ADMIN_PASSWORD`) |
 | **Redis** | sin password | `--requirepass ${REDIS_PASSWORD}` |
 | **Tools de dev** | `pgadmin`, `opensearch-dashboards` | **eliminados** (no se exponen en prod) |
@@ -127,8 +129,9 @@ docker compose -f docker-compose.prod.yml exec web-api invenio roles create admi
 | Variable | Descripción | Default | ¿Requerida en prod? |
 |---|---|---|---|
 | `IMAGE_TAG` | Tag de la imagen de la app | `prod` | opcional |
-| `APP_HOST_BIND` | Bind del puerto de la app en local | `127.0.0.1` | n/a |
+| `APP_HOST_BIND` | Bind del puerto de la app en local | `0.0.0.0` | n/a |
 | `DOCKER_SERVICES_IP_BIND` | Bind de los servicios backend en local | `127.0.0.1` | n/a |
+| `INVENIO_HOSTNAME` | Hostname/IP publico del servidor (ver `.env.prop`) | `localhost` | **obligatorio** |
 | `FRONTEND_HTTP_BIND` | Bind puerto 80 de nginx | `0.0.0.0` | opcional |
 | `FRONTEND_HTTPS_BIND` | Bind puerto 443 de nginx | `0.0.0.0` | opcional |
 | `INVENIO_SECRET_KEY` | Secret key de Flask | `CHANGE_ME` | **obligatorio** |
