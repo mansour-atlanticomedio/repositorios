@@ -33,6 +33,7 @@ services:
       search:
         condition: service_healthy
     volumes:
+      - ./hello-world/invenio.prod.cfg:/opt/invenio/var/instance/invenio.cfg
       - uploaded_data:/opt/invenio/var/instance/data
       - archived_data:/opt/invenio/var/instance/archive
 
@@ -71,6 +72,7 @@ services:
       search:
         condition: service_healthy
     volumes:
+      - ./hello-world/invenio.prod.cfg:/opt/invenio/var/instance/invenio.cfg
       - uploaded_data:/opt/invenio/var/instance/data
       - archived_data:/opt/invenio/var/instance/archive
 
@@ -104,6 +106,7 @@ services:
       search:
         condition: service_healthy
     volumes:
+      - ./hello-world/invenio.prod.cfg:/opt/invenio/var/instance/invenio.cfg
       - uploaded_data:/opt/invenio/var/instance/data
 
   scheduler:
@@ -128,6 +131,8 @@ services:
         condition: service_healthy
       mq:
         condition: service_started
+    volumes:
+      - ./hello-world/invenio.prod.cfg:/opt/invenio/var/instance/invenio.cfg
 
   db:
     image: postgres:14.13

@@ -56,6 +56,7 @@ services:
       search:
         condition: service_healthy
     volumes:
+      - ./hello-world/invenio.prod.cfg:/opt/invenio/var/instance/invenio.cfg
       - uploaded_data:/opt/invenio/var/instance/data
       - archived_data:/opt/invenio/var/instance/archive
     ports:
@@ -96,12 +97,18 @@ services:
       search:
         condition: service_healthy
     volumes:
+      - ./hello-world/invenio.prod.cfg:/opt/invenio/var/instance/invenio.cfg
       - uploaded_data:/opt/invenio/var/instance/data
       - archived_data:/opt/invenio/var/instance/archive
     ports:
       - "0.0.0.0:5001:5000"
 
   worker:
+    build:
+      context: ./hello-world
+      dockerfile: Dockerfile
+      args:
+        ENVIRONMENT: PROD
     image: inveniordm-hello-world:${IMAGE_TAG:-prod}
     container_name: invenio_worker
     restart: always
@@ -128,9 +135,15 @@ services:
       search:
         condition: service_healthy
     volumes:
+      - ./hello-world/invenio.prod.cfg:/opt/invenio/var/instance/invenio.cfg
       - uploaded_data:/opt/invenio/var/instance/data
 
   scheduler:
+    build:
+      context: ./hello-world
+      dockerfile: Dockerfile
+      args:
+        ENVIRONMENT: PROD
     image: inveniordm-hello-world:${IMAGE_TAG:-prod}
     container_name: invenio_scheduler
     restart: always
@@ -149,6 +162,8 @@ services:
         condition: service_healthy
       mq:
         condition: service_started
+    volumes:
+      - ./hello-world/invenio.prod.cfg:/opt/invenio/var/instance/invenio.cfg
 
   db:
     image: postgres:14.13
