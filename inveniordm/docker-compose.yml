@@ -21,6 +21,7 @@ services:
       INVENIO_COMMUNITIES_IDENTITIES_CACHE_REDIS_URL: redis://cache:6379/4
       INVENIO_SITE_UI_URL: https://${INVENIO_HOSTNAME:-localhost}/invenio
       INVENIO_SITE_API_URL: https://${INVENIO_HOSTNAME:-localhost}/invenio/api
+      INVENIO_HOSTNAME: ${INVENIO_HOSTNAME:-localhost}
       INVENIO_SEARCH_HOSTS: '["http://search:9200"]'
       INVENIO_WSGI_PROXIES: "1"
     depends_on:
@@ -60,6 +61,7 @@ services:
       INVENIO_COMMUNITIES_IDENTITIES_CACHE_REDIS_URL: redis://cache:6379/4
       INVENIO_SITE_UI_URL: https://${INVENIO_HOSTNAME:-localhost}/invenio
       INVENIO_SITE_API_URL: https://${INVENIO_HOSTNAME:-localhost}/invenio/api
+      INVENIO_HOSTNAME: ${INVENIO_HOSTNAME:-localhost}
       INVENIO_SEARCH_HOSTS: '["http://search:9200"]'
       INVENIO_WSGI_PROXIES: "1"
     depends_on:

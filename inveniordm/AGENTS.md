@@ -90,6 +90,69 @@ docker compose -f docker-compose.yml exec web-api invenio files location create 
 | RabbitMQ   | 5672/15672| 5672/15672        |
 | OpenSearch | 9200/9600 | 9200/9600         |
 
+## Apache del servidor (proxy inverso)
+
+### Estructura de archivos
+
+```
+/etc/apache2/
+├── sites-available/
+│   └── default-ssl.conf    # Unico archivo activo con todos los vhosts
+├── ssl/
+│   ├── discourse.test.pem
+│   ├── discourse.test-key.pem
+│   ├── localhost+2.pem
+│   └── localhost+2-key.pem
+└── ...
+```
+
+### default-ssl.conf — VirtualHosts definidos
+
+El archivo tiene 3 VirtualHosts en este orden:
+
+1. **`discourse.test`** — ProxyPass `/` → `127.0.0.1:8080` (Discourse). Atrapa TODAS las rutas.
+2. **`localhost`** — ProxyPass `/invenio` → `127.0.0.1:5000`, `/invenio/api` → `127.0.0.1:5001`
+3. **Catch-all (sin ServerName)** — ProxyPass `/biblioteca`, `/dspace`
+
+### Problema conocido (resuelto)
+
+Al acceder por IP (`https://172.24.0.98/invenio`), Apache siempre caía en el **primer** VirtualHost (`discourse.test`) porque el `Host` header no coincidía con ningún `ServerName`. Como ese vhost tenía un `ProxyPass /` genérico, las rutas `/invenio` nunca llegaban al vhost correcto.
+
+**Solución:** El VirtualHost de Invenio (`localhost`) debe ser el **primero** en `default-ssl.conf`. Al no tener `ProxyPass /`, Apache solo responde rutas conocidas (`/invenio`, `/invenio/api`). Cuando se accede por hostname (`discourse.test`), Apache hace match por ServerName y usa el vhost correcto.
+
+```
+# ORDEN CORRECTO en default-ssl.conf:
+
+# 1. Invenio (primero = default para accesos por IP)
+<VirtualHost *:443>
+    ServerName localhost
+    # Sin ProxyPass / — solo rutas explicitas
+    ProxyPass /invenio/api http://127.0.0.1:5001/invenio/api
+    ProxyPassReverse /invenio/api http://127.0.0.1:5001/invenio/api
+    ProxyPass /invenio http://127.0.0.1:5000/invenio
+    ProxyPassReverse /invenio http://127.0.0.1:5000/invenio
+</VirtualHost>
+
+# 2. Discourse
+<VirtualHost *:443>
+    ServerName discourse.test
+    ProxyPass / http://127.0.0.1:8080/
+    ProxyPassReverse / http://127.0.0.1:8080/
+</VirtualHost>
+
+# 3. Catch-all (otros servicios)
+<VirtualHost *:443>
+    ProxyPass /biblioteca ...
+    ProxyPass /dspace ...
+</VirtualHost>
+```
+
+**Además**, se actualizó `invenio.prod.cfg` para incluir `INVENIO_HOSTNAME` en `TRUSTED_HOSTS`, y se agregó `INVENIO_HOSTNAME` como variable de entorno en los servicios Docker. Define la IP en `.env.prop`:
+
+```ini
+INVENIO_HOSTNAME=172.24.0.98
+```
+
 ## Notas
 
 - Las imágenes son autocontenidas: no necesitas montar el código fuente
