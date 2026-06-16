@@ -7,7 +7,7 @@ services:
     container_name: invenio_web_ui
     restart: always
     ports:
-      - "5000:5000"
+      - "${APP_HOST_BIND:-0.0.0.0}:5000:5000"
     environment:
       INVENIO_SECRET_KEY: ${INVENIO_SECRET_KEY}
       INVENIO_SQLALCHEMY_DATABASE_URI: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
@@ -34,7 +34,7 @@ services:
       search:
         condition: service_healthy
     volumes:
-      - ./hello-world/invenio.prod.cfg:/opt/invenio/var/instance/invenio.cfg
+      - ./hello-world/invenio.cfg:/opt/invenio/var/instance/invenio.cfg
       - uploaded_data:/opt/invenio/var/instance/data
       - archived_data:/opt/invenio/var/instance/archive
 
@@ -47,7 +47,7 @@ services:
     restart: always
     entrypoint: uwsgi /opt/invenio/var/instance/uwsgi_rest.ini
     ports:
-      - "5001:5000"
+      - "${APP_HOST_BIND:-0.0.0.0}:5001:5000"
     environment:
       INVENIO_SECRET_KEY: ${INVENIO_SECRET_KEY}
       INVENIO_SQLALCHEMY_DATABASE_URI: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
@@ -74,7 +74,7 @@ services:
       search:
         condition: service_healthy
     volumes:
-      - ./hello-world/invenio.prod.cfg:/opt/invenio/var/instance/invenio.cfg
+      - ./hello-world/invenio.cfg:/opt/invenio/var/instance/invenio.cfg
       - uploaded_data:/opt/invenio/var/instance/data
       - archived_data:/opt/invenio/var/instance/archive
 
@@ -108,7 +108,7 @@ services:
       search:
         condition: service_healthy
     volumes:
-      - ./hello-world/invenio.prod.cfg:/opt/invenio/var/instance/invenio.cfg
+      - ./hello-world/invenio.cfg:/opt/invenio/var/instance/invenio.cfg
       - uploaded_data:/opt/invenio/var/instance/data
 
   scheduler:
@@ -134,7 +134,7 @@ services:
       mq:
         condition: service_started
     volumes:
-      - ./hello-world/invenio.prod.cfg:/opt/invenio/var/instance/invenio.cfg
+      - ./hello-world/invenio.cfg:/opt/invenio/var/instance/invenio.cfg
 
   db:
     image: postgres:14.13

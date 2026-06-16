@@ -7,7 +7,7 @@ services:
     container_name: invenio_app_dev
     restart: unless-stopped
     ports:
-      - "5000:5000"
+      - "${APP_HOST_BIND:-0.0.0.0}:5000:5000"
     environment:
       INVENIO_SECRET_KEY: ${INVENIO_SECRET_KEY:-CHANGE_ME}
       INVENIO_SQLALCHEMY_DATABASE_URI: postgresql+psycopg2://${POSTGRES_USER:-hello-world}:${POSTGRES_PASSWORD:-hello-world}@db:5432/${POSTGRES_DB:-hello-world}

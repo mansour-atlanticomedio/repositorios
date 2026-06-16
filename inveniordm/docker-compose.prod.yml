@@ -42,9 +42,11 @@ services:
       INVENIO_BROKER_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@mq:5672/
       INVENIO_RATELIMIT_STORAGE_URL: redis://cache:6379/3
       INVENIO_COMMUNITIES_IDENTITIES_CACHE_REDIS_URL: redis://cache:6379/4
-      INVENIO_SITE_UI_URL: https://${INVENIO_HOSTNAME:-localhost}/invenio
-      INVENIO_SITE_API_URL: https://${INVENIO_HOSTNAME:-localhost}/invenio/api
+      INVENIO_SITE_UI_URL: http://${INVENIO_HOSTNAME:-localhost}:5000/invenio
+      INVENIO_SITE_API_URL: http://${INVENIO_HOSTNAME:-localhost}:5001/invenio/api
       INVENIO_HOSTNAME: ${INVENIO_HOSTNAME:-localhost}
+      INVENIO_FORCE_HTTPS: "false"
+      INVENIO_SESSION_COOKIE_SECURE: "false"
       INVENIO_SEARCH_HOSTS: '["http://search:9200"]'
       INVENIO_WSGI_PROXIES: "1"
     depends_on:
@@ -57,11 +59,11 @@ services:
       search:
         condition: service_healthy
     volumes:
-      - ./hello-world/invenio.prod.cfg:/opt/invenio/var/instance/invenio.cfg
+      - ./hello-world/invenio.cfg:/opt/invenio/var/instance/invenio.cfg
       - uploaded_data:/opt/invenio/var/instance/data
       - archived_data:/opt/invenio/var/instance/archive
     ports:
-      - "0.0.0.0:5000:5000"
+      - "${APP_HOST_BIND:-0.0.0.0}:5000:5000"
 
   web-api:
     build:
@@ -84,9 +86,11 @@ services:
       INVENIO_BROKER_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@mq:5672/
       INVENIO_RATELIMIT_STORAGE_URL: redis://cache:6379/3
       INVENIO_COMMUNITIES_IDENTITIES_CACHE_REDIS_URL: redis://cache:6379/4
-      INVENIO_SITE_UI_URL: https://${INVENIO_HOSTNAME:-localhost}/invenio
-      INVENIO_SITE_API_URL: https://${INVENIO_HOSTNAME:-localhost}/invenio/api
+      INVENIO_SITE_UI_URL: http://${INVENIO_HOSTNAME:-localhost}:5000/invenio
+      INVENIO_SITE_API_URL: http://${INVENIO_HOSTNAME:-localhost}:5001/invenio/api
       INVENIO_HOSTNAME: ${INVENIO_HOSTNAME:-localhost}
+      INVENIO_FORCE_HTTPS: "false"
+      INVENIO_SESSION_COOKIE_SECURE: "false"
       INVENIO_SEARCH_HOSTS: '["http://search:9200"]'
       INVENIO_WSGI_PROXIES: "1"
     depends_on:
@@ -99,11 +103,11 @@ services:
       search:
         condition: service_healthy
     volumes:
-      - ./hello-world/invenio.prod.cfg:/opt/invenio/var/instance/invenio.cfg
+      - ./hello-world/invenio.cfg:/opt/invenio/var/instance/invenio.cfg
       - uploaded_data:/opt/invenio/var/instance/data
       - archived_data:/opt/invenio/var/instance/archive
     ports:
-      - "0.0.0.0:5001:5000"
+      - "${APP_HOST_BIND:-0.0.0.0}:5001:5000"
 
   worker:
     build:
@@ -137,7 +141,7 @@ services:
       search:
         condition: service_healthy
     volumes:
-      - ./hello-world/invenio.prod.cfg:/opt/invenio/var/instance/invenio.cfg
+      - ./hello-world/invenio.cfg:/opt/invenio/var/instance/invenio.cfg
       - uploaded_data:/opt/invenio/var/instance/data
 
   scheduler:
@@ -165,7 +169,7 @@ services:
       mq:
         condition: service_started
     volumes:
-      - ./hello-world/invenio.prod.cfg:/opt/invenio/var/instance/invenio.cfg
+      - ./hello-world/invenio.cfg:/opt/invenio/var/instance/invenio.cfg
 
   db:
     image: postgres:14.13
@@ -189,11 +193,10 @@ services:
     image: redis:7
     container_name: invenio_cache
     restart: always
-    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
     volumes:
       - cache_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 15s
       timeout: 5s
       retries: 10
