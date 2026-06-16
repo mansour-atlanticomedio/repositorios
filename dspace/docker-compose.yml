@@ -59,7 +59,7 @@ services:
       - db__P__username=${DB_USER} 
       - db__P__password=${DB_PASSWORD} 
       - solr__P__server=http://dspace-solr:8983/solr 
-      - dspace__P__server__P__url=http://localhost:8090/server 
+      # - dspace__P__server__P__url=http://${DSPACE_HOST}:8090/server 
       - dspace__P__dir=/dspace
     volumes:
       - assetstore:/dspace/assetstore
@@ -94,12 +94,12 @@ services:
     ports:
       - "4000:4000"
     environment:
-      - DSPACE_HOST=localhost
+      - DSPACE_HOST=${DSPACE_HOST}
       - DSPACE_PORT=4000
       - DSPACE_NAMESPACE=/
       - DSPACE_SSL=false
       
-      - DSPACE_REST_HOST=localhost
+      - DSPACE_REST_HOST=${DSPACE_HOST}
       - DSPACE_REST_PORT=8090
       - DSPACE_REST_NAMESPACE=/server
       - DSPACE_REST_SSL=false

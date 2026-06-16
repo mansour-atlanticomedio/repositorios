@@ -1,17 +1,15 @@
 ui:
   ssl: false
-  host: 0.0.0.0
+  host: 192.168.0.124
   port: 4000
   nameSpace: /dspace
 
 rest:
   ssl: false
-  host: localhost
-  port: 8080
+  host: 192.168.0.124
+  port: 8090
   nameSpace: /server
 
 cache:
   msToLive: 900000
   control: max-age=60
-
-  
