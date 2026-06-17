@@ -1,0 +1,5 @@
+\c dspacedb;
+
+GRANT ALL PRIVILEGES ON DATABASE dspacedb TO dspace;
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto;

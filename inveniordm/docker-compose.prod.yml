@@ -45,8 +45,6 @@ services:
       INVENIO_SITE_UI_URL: http://${INVENIO_HOSTNAME:-localhost}:5000/invenio
       INVENIO_SITE_API_URL: http://${INVENIO_HOSTNAME:-localhost}:5001/invenio/api
       INVENIO_HOSTNAME: ${INVENIO_HOSTNAME:-localhost}
-      INVENIO_FORCE_HTTPS: "false"
-      INVENIO_SESSION_COOKIE_SECURE: "false"
       INVENIO_SEARCH_HOSTS: '["http://search:9200"]'
       INVENIO_WSGI_PROXIES: "1"
     depends_on:
@@ -89,8 +87,6 @@ services:
       INVENIO_SITE_UI_URL: http://${INVENIO_HOSTNAME:-localhost}:5000/invenio
       INVENIO_SITE_API_URL: http://${INVENIO_HOSTNAME:-localhost}:5001/invenio/api
       INVENIO_HOSTNAME: ${INVENIO_HOSTNAME:-localhost}
-      INVENIO_FORCE_HTTPS: "false"
-      INVENIO_SESSION_COOKIE_SECURE: "false"
       INVENIO_SEARCH_HOSTS: '["http://search:9200"]'
       INVENIO_WSGI_PROXIES: "1"
     depends_on:
