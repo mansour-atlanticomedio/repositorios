@@ -1,0 +1,14 @@
+/*******************************
+      Theme Variable Overrides
+*******************************/
+
+/* Primary colors */
+@primaryColor        : #002855;
+@secondaryColor      : #E87722;
+
+/* Text */
+@textColor           : #333333;
+
+/* Backgrounds */
+@pageBackground      : #FFFFFF;
+@subtleBackground    : #F8F9FA;

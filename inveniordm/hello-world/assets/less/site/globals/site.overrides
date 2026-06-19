@@ -1,0 +1,45 @@
+/*******************************
+         Theme Overrides
+*******************************/
+
+/* Primary: #002855 — navbar, footer, h1/h2, primary buttons */
+@navbarBackgroundImage: linear-gradient(
+  12deg,
+  #0377cd,
+  #0377cd 15%,
+  rgba(251, 130, 115, 0.69)
+);
+@navbarBackgroundColor: #0377cd;
+
+.ui.menu,
+footer {
+  background-color: #002855 !important;
+}
+h1, h2, .ui.header {
+  color: #002855;
+}
+.ui.primary.button {
+  background-color: #002855;
+}
+
+/* Accent: #E87722 — hover, CTA, dividers */
+a:hover,
+.ui.primary.button:hover {
+  color: #E87722 !important;
+}
+.ui.divider {
+  border-color: #E87722 !important;
+}
+.ui.warning.message .icon {
+  color: #E87722;
+}
+
+/* Text: #333333 — paragraphs, descriptions */
+body, p, .description, .content {
+  color: #333333;
+}
+
+/* Backgrounds: #F8F9FA — cards, segments, sections */
+body, .ui.segment, .ui.card, .page-content {
+  background-color: #F8F9FA !important;
+}
