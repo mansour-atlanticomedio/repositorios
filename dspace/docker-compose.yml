@@ -85,7 +85,7 @@ services:
     
 
   dspace-angular:
-    image: dspace/dspace-angular:dspace-8.0
+    build: ./dspace-angular
     container_name: dspace-angular
     env_file:
       - .env

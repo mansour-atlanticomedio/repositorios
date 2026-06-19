@@ -48,14 +48,14 @@ $font-family-sans-serif: 'Nunito', -apple-system, BlinkMacSystemFont, "Segoe UI"
 // ...
 
 // Override semantic colors here
-$primary:   #43515f;  // Gray
-$secondary: #495057;  // As Bootstrap $gray-700
+$primary:   #3bacbd;  // Azul Marino Principal
+$secondary: #E87722;  // Naranja de Acento
 $success:   #92c642;  // Lime
 $info:      #1e6f90;  // Light blue
-$warning:   #ec9433;  // Orange
+$warning:   #E87722;  // Naranja de Acento
 $danger:    #cf4444;  // Red
-$light:     #f8f9fa;  // As Bootstrap $gray-100
-$dark:      #43515f;  // Gray
+$light:     #f8f9fa;  // Gris Claro
+$dark:      #002855;  // Azul Marino Principal
 
 // Add new semantic colors here (you don't need to add existing semantic colors)
 $theme-colors: (
@@ -68,11 +68,11 @@ $theme-colors: (
 // The yiq lightness value that determines when the lightness of color changes from "dark" to "light". Acceptable values are between 0 and 255.
 $yiq-contrasted-threshold: 170;
 
-$body-color: #343a40;       // As Bootstrap $gray-800
+$body-color: #333333;       // Gris Oscuro (Carbón)
 
-$link-color: #1e6f90;       // Blue green, as DSpace $info
+$link-color: #002855;       // Azul Marino Principal
 $link-decoration: none;
-$link-hover-color: darken($link-color, 15%);
+$link-hover-color: #E87722; // Naranja de Acento
 $link-hover-decoration: underline;
 
 $table-accent-bg: #f8f9fa;  // As Bootstrap $gray-100
@@ -83,8 +83,20 @@ $navbar-dark-color: #fff;
 
 /*** CUSTOM DSPACE VARIABLES ***/
 
-$ds-home-news-link-color: #92c642;
-$ds-header-navbar-border-bottom-color: #92c642;
+$ds-home-news-link-color: #002855;
+$ds-header-navbar-border-bottom-color: #E87722;
 
-$ds-breadcrumb-link-color: #154E66 !default;
-$ds-breadcrumb-link-active-color: #040D11 !default;
+$ds-breadcrumb-link-color: #002855;
+$ds-breadcrumb-link-active-color: #E87722;
+
+$ds-header-bg: #3bacbd;
+$ds-header-icon-color: #FFFFFF;
+$ds-header-icon-color-hover: #E87722;
+
+$ds-navbar-bg: #3bacbd;
+$ds-navbar-dropdown-bg: #FFFFFF;
+$ds-expandable-navbar-bg: #002855;
+$ds-navbar-link-color: #FFFFFF;
+$ds-navbar-link-color-hover: #E87722;
+
+$ds-admin-sidebar-bg: darken(#002855, 17%);

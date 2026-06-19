@@ -1,6 +1,6 @@
 {
-    "name": "DSpace",
-    "short_name": "DSpace",
+    "name": "UNAM",
+    "short_name": "UNAM",
     "icons": [
         {
             "src": "android-chrome-192x192.png",
@@ -13,7 +13,7 @@
             "type": "image/png"
         }
     ],
-    "theme_color": "#091119",
-    "background_color": "#091119",
+    "theme_color": "#3bacbd",
+    "background_color": "#002855",
     "display": "standalone"
 }
