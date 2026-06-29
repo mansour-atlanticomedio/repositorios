@@ -1,0 +1,15 @@
+# ui:
+#   ssl: false
+#   host: 172.24.0.95
+#   port: 4000
+#   nameSpace: /dspace
+
+# rest:
+#   ssl: false
+#   host: 172.24.0.95
+#   port: 8090
+#   nameSpace: /server
+
+# cache:
+#   msToLive: 900000
+#   control: max-age=60

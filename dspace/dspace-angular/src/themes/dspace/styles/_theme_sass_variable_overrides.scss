@@ -16,6 +16,60 @@
 
 $font-family-sans-serif: 'Nunito', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 
+:root {
+  /* Colores base listos para usar directamente */
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(0 0% 20%);
+
+  --primary: hsl(211 28% 25%); /* #2d3e50 */
+  --primary-foreground: hsl(0 0% 100%);
+
+  --accent: hsl(187 53% 49%); /* #3bacbd */
+  --accent-foreground: hsl(0 0% 100%);
+
+  --muted: hsl(210 16% 96%);
+  --muted-foreground: hsl(0 0% 35%);
+
+  --border: hsl(0 0% 80%);
+  --input: hsl(0 0% 80%);
+  --ring: hsl(187 53% 49%);
+
+  --radius: 0.5rem;
+
+  --text-primary: var(--foreground)
+
+  /* Efectos de marca */
+  --topbar: hsl(187 53% 49%);
+  --hero-overlay: linear-gradient(135deg, hsl(211 28% 25% / 0.78), hsl(187 53% 35% / 0.55));
+
+  /* Fuentes */
+  --font-display: "Montserrat", "system-ui", "sans-serif";
+  --font-sans: "Open Sans", "system-ui", "sans-serif";
+
+  /* Ajustes de radio y breakpoints */
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+  
+  --breakpoint-2xl: 1400px;
+}
+
+ /* Aplica la fuente por defecto a todo el documento */
+  html {
+    font-family: var(--font-sans);
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--color-foreground)
+    antialiased;
+  }
+
+  h1, h2, h3, h4, h5 {
+    font-family: var(--font-display);
+    color: var(--primary);
+  }
 
 /*** SEMANTIC COLOR SCHEME ***/
 
@@ -48,14 +102,14 @@ $font-family-sans-serif: 'Nunito', -apple-system, BlinkMacSystemFont, "Segoe UI"
 // ...
 
 // Override semantic colors here
-$primary:   #3bacbd;  // Azul Marino Principal
-$secondary: #E87722;  // Naranja de Acento
-$success:   #92c642;  // Lime
-$info:      #1e6f90;  // Light blue
-$warning:   #E87722;  // Naranja de Acento
-$danger:    #cf4444;  // Red
-$light:     #f8f9fa;  // Gris Claro
-$dark:      #002855;  // Azul Marino Principal
+$primary: #3bacbd; // Azul Marino Principal
+$secondary: #E87722; // Naranja de Acento
+$success: #92c642; // Lime
+$info: #1e6f90; // Light blue
+$warning: #E87722; // Naranja de Acento
+$danger: #cf4444; // Red
+$light: #f8f9fa; // Gris Claro
+$dark: #002855; // Azul Marino Principal
 
 // Add new semantic colors here (you don't need to add existing semantic colors)
 $theme-colors: (
@@ -68,15 +122,15 @@ $theme-colors: (
 // The yiq lightness value that determines when the lightness of color changes from "dark" to "light". Acceptable values are between 0 and 255.
 $yiq-contrasted-threshold: 170;
 
-$body-color: #333333;       // Gris Oscuro (Carbón)
+$body-color: #333333; // Gris Oscuro (Carbón)
 
-$link-color: #002855;       // Azul Marino Principal
+$link-color: #002855; // Azul Marino Principal
 $link-decoration: none;
-$link-hover-color: #E87722; // Naranja de Acento
+$link-hover-color: var(--accent); // Naranja de Acento
 $link-hover-decoration: underline;
 
-$table-accent-bg: #f8f9fa;  // As Bootstrap $gray-100
-$table-hover-bg: #ced4da;   // As Bootstrap $gray-400
+$table-accent-bg: #f8f9fa; // As Bootstrap $gray-100
+$table-hover-bg: #ced4da; // As Bootstrap $gray-400
 
 $navbar-dark-color: #fff;
 
@@ -84,19 +138,29 @@ $navbar-dark-color: #fff;
 /*** CUSTOM DSPACE VARIABLES ***/
 
 $ds-home-news-link-color: #002855;
-$ds-header-navbar-border-bottom-color: #E87722;
+$ds-header-navbar-border-bottom-color: var(--border);
 
 $ds-breadcrumb-link-color: #002855;
-$ds-breadcrumb-link-active-color: #E87722;
+$ds-breadcrumb-link-active-color: var(--accent);
 
-$ds-header-bg: #3bacbd;
-$ds-header-icon-color: #FFFFFF;
-$ds-header-icon-color-hover: #E87722;
+$ds-header-bg: var(--background);
+$ds-header-icon-color: var(--primary);
+$ds-header-icon-color-hover: var(--accent);
 
-$ds-navbar-bg: #3bacbd;
+$ds-navbar-bg: var(--background);
 $ds-navbar-dropdown-bg: #FFFFFF;
-$ds-expandable-navbar-bg: #002855;
-$ds-navbar-link-color: #FFFFFF;
-$ds-navbar-link-color-hover: #E87722;
+$ds-expandable-navbar-bg: var(--primary);
+$ds-navbar-link-color: var(--text-primary);
+$ds-navbar-link-color-hover: var(--accent);
 
 $ds-admin-sidebar-bg: darken(#002855, 17%);
+
+$ds-footer: var(--primary);
+
+footer {
+  background-color: var(--primary);
+}
+
+#header-right {
+  color: var(--primary);
+}

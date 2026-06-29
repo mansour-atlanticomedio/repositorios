@@ -3,7 +3,7 @@
 ## Architecture
 
 ```
-Machine  192.168.0.236          Machine  192.168.0.124 (este host)
+Machine  192.168.0.236          Machine  172.24.0.95 (este host)
 ┌──────────────────────┐       ┌─────────────────────────────────────┐
 │   Apache (HTTPS)     │──────▶│  Docker                             │
 │   ProxyPass a        │       │  ┌──────────┐  ┌─────────────────┐  │
@@ -141,8 +141,8 @@ GET https://192.168.0.236/dspace/server/api → HTTP 503
 Backend accesible desde el host en `http://127.0.0.1:8090/dspace/server/api`. Apache necesita proxy:
 
 ```apache
-ProxyPass /dspace/server http://192.168.0.124:8090/dspace/server
-ProxyPassReverse /dspace/server http://192.168.0.124:8090/dspace/server
+ProxyPass /dspace/server http://172.24.0.95:8090/dspace/server
+ProxyPassReverse /dspace/server http://172.24.0.95:8090/dspace/server
 
 RequestHeader set X-Forwarded-Proto "https"
 RequestHeader set X-Forwarded-Port "443"

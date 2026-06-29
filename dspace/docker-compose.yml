@@ -53,14 +53,14 @@ services:
         condition: service_healthy
     ports:
       - "8090:8080"
-    environment:
-      - JAVA_OPTS=-Xmx2048m -Xms1024m 
-      - db__P__url=jdbc:postgresql://dspacedb:5432/${DB_NAME} 
-      - db__P__username=${DB_USER} 
-      - db__P__password=${DB_PASSWORD} 
-      - solr__P__server=http://dspace-solr:8983/solr 
-      # - dspace__P__server__P__url=http://${DSPACE_HOST}:8090/server 
-      - dspace__P__dir=/dspace
+    # environment:
+      # - JAVA_OPTS=-Xmx2048m -Xms1024m 
+      # - db__P__url=jdbc:postgresql://dspacedb:5432/${DB_NAME} 
+      # - db__P__username=${DB_USER} 
+      # - db__P__password=${DB_PASSWORD} 
+      # - solr__P__server=http://dspace-solr:8983/solr 
+      # # - dspace__P__server__P__url=http://${DSPACE_HOST}:8090/server 
+      # - dspace__P__dir=/dspace
     volumes:
       - assetstore:/dspace/assetstore
       # - ./dspace-logs:/dspace/log

@@ -64,7 +64,7 @@ services:
     #   - dspace__ui__url=${DSPACE_UI_URL}
     #   - dspace__server__url=${DSPACE_REST_URL}
     #   - solr__server=http://dspace-solr:8983/solr
-    #   - rest__cors__allowed-origins=http://${DSPACE_HOST}:4000,http://192.168.0.124:4000,http://host.docker.internal:4000
+    #   - rest__cors__allowed-origins=http://${DSPACE_HOST}:4000,http://172.24.0.95:4000,http://host.docker.internal:4000
     volumes:
       - assetstore:/dspace/assetstore
       # - ./dspace-logs:/dspace/log
@@ -100,10 +100,10 @@ services:
     ports:
       - "4000:4000"
     # environment:
-    #   - DSPACE_HOST=${DSPACE_HOST}
-    #   - DSPACE_PORT=4000
-    #   - DSPACE_NAMESPACE=/dspace
-    #   - DSPACE_SSL=false
+    #   - DSPACE_UI_HOST=${DSPACE_HOST}
+    #   - DSPACE_UI_PORT=4000
+    #   - DSPACE_UI_NAMESPACE=/dspace
+    #   - DSPACE_UI_SSL=false
 
     #   - DSPACE_REST_HOST=${DSPACE_HOST}
     #   - DSPACE_REST_PORT=8090
