@@ -54,7 +54,7 @@ services:
       dspace-solr:
         condition: service_healthy
     ports:
-      - "8090:8080"
+      - "127.0.0.1:8090:8080"  
     # environment:
     #   - JAVA_OPTS=-Xmx2048m -Xms1024m
     #   - db__url=${DATABASE_URL}
@@ -92,13 +92,13 @@ services:
     container_name: dspace-angular
     build:
       context: ./dspace-angular
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dist
     env_file:
       - .env.prod
     depends_on:
       - dspace-backend
     ports:
-      - "4000:4000"
+      - "127.0.0.1:4000:4000"  
     # environment:
     #   - DSPACE_UI_HOST=${DSPACE_HOST}
     #   - DSPACE_UI_PORT=4000
